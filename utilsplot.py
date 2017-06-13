@@ -97,7 +97,56 @@ def plot_freq_subplot(plt, w, direction, name, color, figure_num):
         plt.title(name)
         plt.semilogx(w, direction[i, :], color)
 
+        
+def complexplane(args, color=True, marker='o', msize=5):
+    """
+    Plot up to 8 arguments on a complex plane (limited by the colors)
+    Useful when you wish to compare sets of complex numbers graphically or
+    plot your poles and zeros
+    
+    Parameters
+    ----------
+    args : A list of the list of numbers to plot
+    color : True if every tuple of info must be a different color
+            False if all must be the same color
+    marker : Type of amrker to use
+             https://matplotlib.org/api/markers_api.html
+    msize : Size of the marker
+    
+    Example:
+        A = [1+2j, 1-2j, 1+1j, 2-1j]
+        B = [1+2j, 3+2j, 1, 1+2j]
+        complexplane([A, B, [1+3j, 2+5j]], marker='+', msize=8)
+    """
+    
+    fig = plt.figure()
+    axes = fig.add_subplot(111)
+    #define color index
+    if color:
+        colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
+    else:
+        colors = ['m']*8
 
+    #Plot the complex numbers
+    count = 0
+    for a in args:
+        for items in a:
+            plt.plot(items.real, items.imag, colors[count]+marker, markersize=msize)           
+        count += 1
+        
+    plt.ylabel('Im')
+    plt.xlabel('Re')
+    plt.grid(True)
+    plt.axhline(0., color='red', linestyle='--')
+    plt.axvline(0., color='red', linestyle='--')
+    Xaxes = axes.get_xlim()
+    Yaxes = axes.get_ylim()
+    rangeX = Xaxes[1] - Xaxes[0]
+    rangeY = Yaxes[1] - Yaxes[0]
+    axes.set_xlim(Xaxes[0]-0.1*rangeX, Xaxes[1]+0.1*rangeX)
+    axes.set_ylim(Yaxes[0]-0.1*rangeY, Yaxes[1]+0.1*rangeY)
+    
+    
 ###############################################################################
 #                                Chapter 2                                    #
 ###############################################################################
@@ -425,13 +474,18 @@ def sv_dir_plot(G, plot_type, w_start=-2, w_end=2, axlim=None, points=1000):
 
     dim = numpy.shape(vec)[1]
     for i in range(dim):
-        plt.subplot(dim, 1, i + 1)
-        plt.semilogx(w, vec[:, 0, i], label='$%s_{max}$' % d, lw=4)
-        plt.semilogx(w, vec[:, -1, i], label='$%s_{min}$' % d, lw=4)
+        plt.subplot(dim*2, 1, 2*i + 1)
+        plt.semilogx(w, abs(vec[:, i, 0]), label='$%s_{max}$' % d, lw=2)
+        plt.semilogx(w, abs(vec[:, i, -1]), label='$%s_{min}$' % d, lw=2)
         plt.axhline(0, color='red', ls=':')
         plt.axis(axlim)
-        plt.ylabel('${0}_{1}$'.format(d, i + 1))
-        plt.legend()
+        plt.ylabel('$|{0}_{1}|$'.format(d, i + 1))
+        plt.subplot(dim*2, 1, 2*i + 2)
+        plt.semilogx(w, utils.phase(vec[:, i, 0], deg=True), label='$%s_{max}$' % d, lw=2)
+        plt.semilogx(w, utils.phase(vec[:, i, -1], deg=True), label='$%s_{min}$' % d, lw=2)
+        plt.axhline(0, color='red', ls=':')
+        plt.axis(axlim)
+        plt.ylabel(r'$\angle {0}_{1}$'.format(d, i + 1))
 
     plt.xlabel('Frequency [rad/unit time]')
 
